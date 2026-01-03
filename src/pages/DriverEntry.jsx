@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTrips } from '../hooks/useTrips';
-import { Save, Truck, CheckCircle2, Edit, Trash2, X, Wallet } from 'lucide-react';
+import { Save, Truck, CheckCircle2, Edit, Trash2, X, Wallet, LayoutDashboard } from 'lucide-react';
 import { getLocalDate } from '../utils/dateUtils';
 import SalarySlip from '../components/SalarySlip';
+import { Link } from 'react-router-dom';
 
 const DriverEntry = () => {
     const { addTrip, deleteTrip, updateTrip, routePresets, stats, trips, cnDeductions } = useTrips();
@@ -108,7 +109,26 @@ const DriverEntry = () => {
 
     return (
         <div className="driver-container fade-in">
-            <header className="driver-header">
+            <header className="driver-header" style={{ position: 'relative' }}>
+                <Link
+                    to="/"
+                    style={{
+                        position: 'absolute',
+                        right: '0',
+                        top: '1rem',
+                        color: 'var(--text-dim)',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        fontSize: '0.85rem',
+                        padding: '0.5rem',
+                        background: 'rgba(255,255,255,0.05)',
+                        borderRadius: '0.5rem'
+                    }}
+                >
+                    <LayoutDashboard size={16} /> แอดมิน
+                </Link>
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
                     <Truck size={32} color="var(--primary)" />
                     <h1>ลงสายวิ่งงาน <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>(v2.2)</span></h1>

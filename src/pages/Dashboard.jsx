@@ -6,6 +6,7 @@ import MonthlyTable from '../components/MonthlyTable';
 import { useTrips } from '../hooks/useTrips';
 import { exportToCSV } from '../utils/exportUtils';
 import { LayoutGrid, List, Truck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { getLocalDate } from '../utils/dateUtils';
 
 const Dashboard = () => {
@@ -77,9 +78,9 @@ const Dashboard = () => {
                         <List size={16} /> รายการทั้งหมด
                     </button>
                 </div>
-                <a href="/driver" className="btn btn-outline" style={{ textDecoration: 'none' }}>
+                <Link to="/driver" className="btn btn-outline" style={{ textDecoration: 'none' }}>
                     <Truck size={16} /> ลงสายวิ่งงาน (สำหรับคนขับ)
-                </a>
+                </Link>
             </div>
 
             <div ref={formRef}>
