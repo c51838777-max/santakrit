@@ -61,18 +61,18 @@ export const useTrips = () => {
             .trim()
             .replace(/\s+/g, ' ');
 
-        // Standardize ALL financial fields
-        const price = parseFloat(t.price) || 0;
-        const fuel = parseFloat(t.fuel) || 0;
-        const wage = parseFloat(t.wage) || 0;
-        const maintenance = parseFloat(t.maintenance) || 0;
-        const basket = parseFloat(t.basket) || 0;
+        // Standardize ALL financial fields with comprehensive fallbacks
+        const price = parseFloat(t.price) || parseFloat(t.prices) || 0;
+        const fuel = parseFloat(t.fuel) || parseFloat(t.fuels) || 0;
+        const wage = parseFloat(t.wage) || parseFloat(t.wages) || parseFloat(t.driver_wage) || 0;
+        const maintenance = parseFloat(t.maintenance) || parseFloat(t.maintain) || 0;
+        const basket = parseFloat(t.basket) || parseFloat(t.basket_income) || 0;
 
-        // Advance (ยอดเบิก): Use any variant but consolidate to staffShare
+        // Advance (ยอดเบิก): Consolidate variants
         const staffShare = parseFloat(t.staffShare) || parseFloat(t.advance) || parseFloat(t.staff_advance) || 0;
 
-        // Basket Share (ส่วนแบ่งตะกร้า): Priority to basketShare, then variants
-        const basketShare = parseFloat(t.basketShare) || parseFloat(t.basket_share) || 0;
+        // Basket Share (ส่วนแบ่งตะกร้า): Consolidate variants (Historically sometimes called staff_share)
+        const basketShare = parseFloat(t.basketShare) || parseFloat(t.basket_share) || parseFloat(t.staff_share) || 0;
 
         // Profit calculation (Revenue - Expenses)
         // Revenue = price (trip fee) + basket (basket revenue)
