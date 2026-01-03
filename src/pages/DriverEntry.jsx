@@ -3,10 +3,11 @@ import { useTrips } from '../hooks/useTrips';
 import { Save, Truck, CheckCircle2, Edit, Trash2, X, Wallet, LayoutDashboard } from 'lucide-react';
 import { getLocalDate } from '../utils/dateUtils';
 import SalarySlip from '../components/SalarySlip';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const DriverEntry = () => {
     const { addTrip, deleteTrip, updateTrip, routePresets, stats, trips, cnDeductions } = useTrips();
+    const navigate = useNavigate();
     const [submitted, setSubmitted] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [showSlip, setShowSlip] = useState(false);
@@ -110,8 +111,15 @@ const DriverEntry = () => {
     return (
         <div className="driver-container fade-in">
             <header className="driver-header" style={{ position: 'relative' }}>
-                <Link
-                    to="/"
+                <button
+                    onClick={() => {
+                        const pass = prompt('กรุณาใส่รหัสผ่านแอดมิน:');
+                        if (pass === '2639') {
+                            navigate('/');
+                        } else if (pass) {
+                            alert('รหัสผ่านไม่ถูกต้อง');
+                        }
+                    }}
                     style={{
                         position: 'absolute',
                         right: '0',
@@ -124,11 +132,13 @@ const DriverEntry = () => {
                         fontSize: '0.85rem',
                         padding: '0.5rem',
                         background: 'rgba(255,255,255,0.05)',
-                        borderRadius: '0.5rem'
+                        border: 'none',
+                        borderRadius: '0.5rem',
+                        cursor: 'pointer'
                     }}
                 >
                     <LayoutDashboard size={16} /> แอดมิน
-                </Link>
+                </button>
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem' }}>
                     <Truck size={32} color="var(--primary)" />
                     <h1>ลงสายวิ่งงาน <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>(v2.2)</span></h1>
