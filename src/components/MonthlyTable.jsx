@@ -230,12 +230,13 @@ const MonthlyTable = ({ currentMonth, currentYear, trips, onMonthChange, onExpor
                         });
 
                         return Object.entries(driversMap).map(([name, driverTrips]) => {
+                            const cn = parseFloat(cnDeductions[name]) || 0;
                             const totalPay = driverTrips.reduce((sum, t) => {
                                 const wage = parseFloat(t.wage) || 0;
                                 const bShare = parseFloat(t.basketShare || t.basket_share || t.staff_share) || 0;
                                 const advance = parseFloat(t.staffShare || t.advance || t.staff_advance) || 0;
                                 return sum + wage + bShare - advance;
-                            }, 1000);
+                            }, 1000) - cn;
 
                             return (
                                 <div key={name} className="glass-card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.05)' }}>
