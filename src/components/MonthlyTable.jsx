@@ -4,6 +4,15 @@ import SalarySlip from './SalarySlip';
 
 const MonthlyTable = ({ currentMonth, currentYear, trips, onMonthChange, onExport, onSelectDate, onEditTrip, onDeleteTrip }) => {
     const [selectedDriverForSlip, setSelectedDriverForSlip] = React.useState(null);
+    const [cnDeductions, setCnDeductions] = React.useState(() => {
+        const saved = localStorage.getItem('pattatha_cn_deductions');
+        return saved ? JSON.parse(saved) : {};
+    });
+
+    React.useEffect(() => {
+        localStorage.setItem('pattatha_cn_deductions', JSON.stringify(cnDeductions));
+    }, [cnDeductions]);
+
     const months = [
         'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
         'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
@@ -41,10 +50,10 @@ const MonthlyTable = ({ currentMonth, currentYear, trips, onMonthChange, onExpor
                 fuel: acc.fuel + (parseFloat(trip.fuel) || 0),
                 wage: acc.wage + (parseFloat(trip.wage) || 0),
                 basket: acc.basket + (parseFloat(trip.basket) || 0),
-                staffShare: acc.staffShare + (parseFloat(trip.staffShare) || 0),
+                staffShare: acc.staffShare + (parseFloat(trip.staffShare || trip.advance || trip.staff_advance) || 0),
                 maintenance: acc.maintenance + (parseFloat(trip.maintenance) || 0),
                 advance: acc.advance + (parseFloat(trip.advance) || 0),
-                basketShare: acc.basketShare + (parseFloat(trip.basketShare) || 0),
+                basketShare: acc.basketShare + (parseFloat(trip.basketShare || trip.basket_share || trip.staff_share) || 0),
                 profit: acc.profit + (parseFloat(trip.profit) || 0)
             }), { price: 0, fuel: 0, wage: 0, basket: 0, staffShare: 0, maintenance: 0, advance: 0, basketShare: 0, profit: 0 }),
             count: dayTrips.length,
@@ -221,7 +230,12 @@ const MonthlyTable = ({ currentMonth, currentYear, trips, onMonthChange, onExpor
                         });
 
                         return Object.entries(driversMap).map(([name, driverTrips]) => {
-                            const totalPay = driverTrips.reduce((sum, t) => sum + (parseFloat(t.wage) || 0) + (parseFloat(t.basket_share || t.basketShare) || 0) - (parseFloat(t.staff_share || t.staffShare) || 0), 1000);
+                            const totalPay = driverTrips.reduce((sum, t) => {
+                                const wage = parseFloat(t.wage) || 0;
+                                const bShare = parseFloat(t.basketShare || t.basket_share || t.staff_share) || 0;
+                                const advance = parseFloat(t.staffShare || t.advance || t.staff_advance) || 0;
+                                return sum + wage + bShare - advance;
+                            }, 1000);
 
                             return (
                                 <div key={name} className="glass-card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -229,13 +243,25 @@ const MonthlyTable = ({ currentMonth, currentYear, trips, onMonthChange, onExpor
                                         <p style={{ fontWeight: '600', marginBottom: '0.25rem' }}>{name}</p>
                                         <p style={{ fontSize: '0.75rem', color: 'var(--success)' }}>ยอดสุทธิ: ฿{totalPay.toLocaleString()}</p>
                                     </div>
-                                    <button
-                                        className="btn btn-primary"
-                                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
-                                        onClick={() => setSelectedDriverForSlip({ name, trips: driverTrips })}
-                                    >
-                                        <ReceiptText size={14} /> ดูสลิป
-                                    </button>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <div style={{ marginRight: '0.5rem' }}>
+                                            <input
+                                                type="number"
+                                                placeholder="หักค่า CN"
+                                                className="warning-input"
+                                                style={{ width: '80px', padding: '0.25rem', fontSize: '0.75rem' }}
+                                                value={cnDeductions[name] || ''}
+                                                onChange={(e) => setCnDeductions({ ...cnDeductions, [name]: e.target.value })}
+                                            />
+                                        </div>
+                                        <button
+                                            className="btn btn-primary"
+                                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
+                                            onClick={() => setSelectedDriverForSlip({ name, trips: driverTrips, cn: cnDeductions[name] })}
+                                        >
+                                            <ReceiptText size={14} /> ดูสลิป
+                                        </button>
+                                    </div>
                                 </div>
                             );
                         });
@@ -247,6 +273,7 @@ const MonthlyTable = ({ currentMonth, currentYear, trips, onMonthChange, onExpor
                 <SalarySlip
                     driverName={selectedDriverForSlip.name}
                     trips={selectedDriverForSlip.trips}
+                    cnDeduction={selectedDriverForSlip.cn}
                     onClose={() => setSelectedDriverForSlip(null)}
                     period={`20 ${months[(currentMonth - 1 + 12) % 12]} - 19 ${months[currentMonth]} ${currentYear}`}
                 />

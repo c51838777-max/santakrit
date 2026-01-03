@@ -12,7 +12,7 @@ export const useTrips = () => {
 
     useEffect(() => {
         const init = async () => {
-            if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+            if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_URL === 'YOUR_SUPABASE_URL') {
                 loadLocalData();
                 return;
             }
@@ -57,10 +57,10 @@ export const useTrips = () => {
         // DRIVE NAME: Look for any common column name
         const driverName = t.driver_name || t.driverName || t.driver || t.staff || t.name || '';
 
-        // BASKET SHARE (ส่วนแบ่งตะกร้า): Try specific column first, then generic staff_share
-        // STAFF SHARE (ยอดเบิก/Advance): Try specific advance column first
-        const basketShare = parseFloat(t.basket_share !== undefined ? t.basket_share : (t.staff_share || 0)) || 0;
-        const staffShare = parseFloat(t.advance !== undefined ? t.advance : (t.staff_advance || 0)) || 0;
+        // BASKET SHARE (ส่วนแบ่งตะกร้า): Priority: basketShare -> basket_share -> staff_share
+        const basketShare = parseFloat(t.basketShare) || parseFloat(t.basket_share) || parseFloat(t.staff_share) || 0;
+        // STAFF SHARE (ยอดเบิก/Advance): Priority: staffShare -> advance -> staff_advance -> staff_share (as fallback)
+        const staffShare = parseFloat(t.staffShare) || parseFloat(t.advance) || parseFloat(t.staff_advance) || 0;
 
         return {
             ...t,
@@ -181,11 +181,11 @@ export const useTrips = () => {
         if (isSupabaseReady) {
             // We search for a payload that actually works without throwing "column not found"
             const attempts = [
-                // 1. Full attempt with driver_name
-                { ...baseData, driver_name: trip.driverName || '', basket, maintenance, staff_share: basketShare, advance: staffShare, basket_share: basketShare, basket_count: basketCount },
-                // 2. Try camelCase driverName (common in some setups)
-                { ...baseData, driverName: trip.driverName || '', basket, maintenance, staff_share: basketShare, advance: staffShare },
-                // 3. Try just 'name' (very common legacy column)
+                // 1. Full attempt with standardized columns
+                { ...baseData, driver_name: trip.driverName || '', basket, maintenance, staff_share: basketShare, advance: staffShare, basket_count: basketCount },
+                // 2. Try camelCase driverName
+                { ...baseData, driverName: trip.driverName || '', basket, maintenance, staff_share: basketShare, advance: staffShare, basket_count: basketCount },
+                // 3. Try 'name'
                 { ...baseData, name: trip.driverName || '', basket, maintenance, staff_share: basketShare, advance: staffShare },
                 // 4. Try 'driver'
                 { ...baseData, driver: trip.driverName || '', basket, maintenance, staff_share: basketShare, advance: staffShare },

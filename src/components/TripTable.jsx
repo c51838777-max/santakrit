@@ -24,6 +24,7 @@ const TripTable = ({ trips, onDelete, onEdit, onExport }) => {
                             <th>ค่าซ่อม (-)</th>
                             <th>เบิกคนขับ (-)</th>
                             <th>รายได้ตะกร้า (+)</th>
+                            <th>ส่วนแบ่งตะกร้า (-)</th>
                             <th>ยอดเบิก (ลูกน้อง)</th>
                             <th>กำไรสุทธิ</th>
                             <th>จัดการ</th>
@@ -47,6 +48,7 @@ const TripTable = ({ trips, onDelete, onEdit, onExport }) => {
                                     <td style={{ color: 'var(--danger)' }}>-{parseFloat(trip.maintenance || 0).toLocaleString()} ฿</td>
                                     <td style={{ color: 'var(--warning-intense)' }}>-{parseFloat(trip.advance || 0).toLocaleString()} ฿</td>
                                     <td style={{ color: 'var(--success)' }}>+{parseFloat(trip.basket || 0).toLocaleString()} ฿</td>
+                                    <td style={{ color: 'var(--danger)' }}>-{parseFloat(trip.basketShare || 0).toLocaleString()} ฿</td>
                                     <td style={{ color: 'var(--warning)' }}>-{parseFloat(trip.staffShare || 0).toLocaleString()} ฿</td>
                                     <td>
                                         <span className="badge badge-profit">

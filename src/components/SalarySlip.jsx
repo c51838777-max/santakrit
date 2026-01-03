@@ -1,17 +1,18 @@
 import React from 'react';
 import { X, Printer, Truck, Wallet, TrendingDown, Info } from 'lucide-react';
 
-const SalarySlip = ({ driverName, trips, onClose, period }) => {
+const SalarySlip = ({ driverName, trips, onClose, period, cnDeduction }) => {
     // Safety Parser
     const p = (val) => parseFloat(val) || 0;
+    const cn = p(cnDeduction);
 
     const totalWage = trips.reduce((sum, t) => sum + p(t.wage), 0);
-    const totalBasketShare = trips.reduce((sum, t) => sum + p(t.basketShare), 0);
-    const totalAdvance = trips.reduce((sum, t) => sum + p(t.staffShare), 0);
+    const totalBasketShare = trips.reduce((sum, t) => sum + (p(t.basketShare) || p(t.basket_share) || p(t.staff_share)), 0);
+    const totalAdvance = trips.reduce((sum, t) => sum + (p(t.staffShare) || p(t.advance) || p(t.staff_advance)), 0);
     const housingAllowance = 1000; // Fixed housing allowance as requested
 
     const totalIncome = totalWage + totalBasketShare + housingAllowance;
-    const netPay = totalIncome - totalAdvance;
+    const netPay = totalIncome - totalAdvance - cn;
 
     return (
         <div className="modal-overlay fade-in">
@@ -74,10 +75,16 @@ const SalarySlip = ({ driverName, trips, onClose, period }) => {
                                     <span>ยอดเงินเบิกสะสม</span>
                                     <span className="val-red">-฿{totalAdvance.toLocaleString()}</span>
                                 </div>
+                                {cn > 0 && (
+                                    <div className="summary-item-v3">
+                                        <span>หักค่า CN</span>
+                                        <span className="val-red">-฿{cn.toLocaleString()}</span>
+                                    </div>
+                                )}
                                 <div className="summary-divider"></div>
                                 <div className="summary-total-v3">
                                     <span>รวมรายการหัก</span>
-                                    <span className="val-red">-฿{totalAdvance.toLocaleString()}</span>
+                                    <span className="val-red">-฿{(totalAdvance + cn).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -109,10 +116,7 @@ const SalarySlip = ({ driverName, trips, onClose, period }) => {
                     </div>
 
                     <div className="slip-actions-v3 no-print">
-                        <button className="btn btn-primary btn-block-v3" onClick={() => window.print()}>
-                            <Printer size={18} /> พิมพ์สลิปสะสม
-                        </button>
-                        <button className="btn btn-outline btn-block-v3" onClick={onClose}>
+                        <button className="btn btn-primary btn-block-v3" onClick={onClose}>
                             ปิดหน้าจอ
                         </button>
                     </div>

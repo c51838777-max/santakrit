@@ -2,17 +2,22 @@ import { useState } from 'react';
 import { useTrips } from '../hooks/useTrips';
 import { Save, Truck, CheckCircle2, Edit, Trash2, X, Wallet } from 'lucide-react';
 import { getLocalDate } from '../utils/dateUtils';
+import SalarySlip from '../components/SalarySlip';
 
 const DriverEntry = () => {
     const { addTrip, deleteTrip, updateTrip, routePresets, stats, trips } = useTrips();
     const [submitted, setSubmitted] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const [showSlip, setShowSlip] = useState(false);
     const [formData, setFormData] = useState({
         driverName: localStorage.getItem('lastDriverName') || '',
         route: '',
         price: '',
         fuel: '',
         staffShare: '', // This is the 'ยอดเบิก' (Advance)
+        basketCount: '',
+        basket: '',
+        basketShare: '',
         date: getLocalDate()
     });
 
@@ -38,6 +43,9 @@ const DriverEntry = () => {
             price: trip.price || '',
             fuel: trip.fuel || '',
             staffShare: trip.staffShare || '',
+            basketCount: trip.basketCount || '',
+            basket: trip.basket || '',
+            basketShare: trip.basketShare || '',
             date: trip.date.split('T')[0]
         });
         setEditingId(trip.id);
@@ -49,6 +57,7 @@ const DriverEntry = () => {
         setFormData({
             driverName: localStorage.getItem('lastDriverName') || '',
             route: '', price: '', fuel: '', staffShare: '',
+            basketCount: '', basket: '', basketShare: '',
             date: getLocalDate()
         });
     };
@@ -77,6 +86,7 @@ const DriverEntry = () => {
         setFormData({
             driverName: localStorage.getItem('lastDriverName') || '',
             route: '', price: '', fuel: '', staffShare: '',
+            basketCount: '', basket: '', basketShare: '',
             date: getLocalDate()
         });
 
@@ -144,32 +154,39 @@ const DriverEntry = () => {
                         </datalist>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div className="input-group">
-                            <label>ค่าน้ำมัน (บาท)</label>
-                            <input
-                                type="number"
-                                placeholder="0"
-                                value={formData.fuel}
-                                onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
-                            />
-                        </div>
-                        <div className="input-group">
-                            <label style={{ color: 'var(--warning-intense)' }}>ยอดเบิก (บาท)</label>
-                            <input
-                                type="number"
-                                style={{ borderColor: 'var(--warning-intense)' }}
-                                placeholder="0"
-                                value={formData.staffShare}
-                                onChange={(e) => setFormData({ ...formData, staffShare: e.target.value })}
-                            />
-                        </div>
+                    <div className="input-group">
+                        <label>จำนวนตะกร้า (ใบ)</label>
+                        <input
+                            type="number"
+                            placeholder="0"
+                            value={formData.basketCount}
+                            onChange={(e) => {
+                                const count = parseInt(e.target.value) || 0;
+                                let rev = 0;
+                                let share = 0;
+                                if (count >= 101) { rev = 1000; share = 700; }
+                                else if (count >= 91) { rev = 600; share = 400; }
+                                else if (count >= 86) { rev = 300; share = 200; }
+                                setFormData({
+                                    ...formData,
+                                    basketCount: e.target.value,
+                                    basket: rev,
+                                    basketShare: share
+                                });
+                            }}
+                        />
                     </div>
 
-                    <div className="form-summary" style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1px solid var(--warning-intense)' }}>
-                        <p style={{ color: 'var(--warning-intense)', fontSize: '0.9rem', marginBottom: '0.25rem' }}>ยอดเบิกสะสมเดือนนี้</p>
-                        <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>฿{(stats.totalStaffAdvance || 0).toLocaleString()}</p>
+                    <div className="input-group">
+                        <label>ค่าน้ำมัน (บาท)</label>
+                        <input
+                            type="number"
+                            placeholder="0"
+                            value={formData.fuel}
+                            onChange={(e) => setFormData({ ...formData, fuel: e.target.value })}
+                        />
                     </div>
+
 
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <button type="submit" className="btn btn-primary btn-large" style={{ flex: 1 }}>
@@ -184,9 +201,26 @@ const DriverEntry = () => {
                 </form>
 
                 <div className="history-section glass-card" style={{ marginTop: '1.5rem', padding: '1.5rem' }}>
-                    <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
-                        <CheckCircle2 size={18} /> ประวัติ 5 รายการล่าสุด
-                    </h2>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h2 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', margin: 0 }}>
+                            <CheckCircle2 size={18} /> ประวัติ 5 รายการล่าสุด
+                        </h2>
+                        <button
+                            className="btn btn-outline"
+                            style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                            onClick={() => {
+                                const pass = prompt('กรุณาใส่รหัสผ่านเพื่อดูยอดเงินเดือน:');
+                                if (pass === '4565') {
+                                    setShowSlip(true);
+                                } else if (pass) {
+                                    alert('รหัสผ่านไม่ถูกต้อง');
+                                }
+                            }}
+                        >
+                            <Wallet size={16} /> เช็คยอดเงินเดือน
+                        </button>
+                    </div>
+
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {trips.slice(0, 5).map(trip => (
                             <div key={trip.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.5rem', fontSize: '0.85rem' }}>
@@ -198,7 +232,6 @@ const DriverEntry = () => {
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <div style={{ textAlign: 'right' }}>
-                                        {trip.staffShare > 0 && <div style={{ color: 'var(--warning-intense)', fontWeight: 'bold' }}>เบิก ฿{trip.staffShare.toLocaleString()}</div>}
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         <button onClick={() => handleEdit(trip)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '0.25rem' }}>
@@ -278,6 +311,15 @@ const DriverEntry = () => {
                     color: white;
                 }
             `}} />
+
+            {showSlip && (
+                <SalarySlip
+                    driverName={formData.driverName || 'ไม่ระบุชื่อ'}
+                    trips={trips.filter(t => t.driverName === formData.driverName)}
+                    onClose={() => setShowSlip(false)}
+                    period="เดือนปัจจุบัน"
+                />
+            )}
         </div>
     );
 };
