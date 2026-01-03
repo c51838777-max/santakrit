@@ -120,7 +120,7 @@ export const useTrips = () => {
     };
 
     const calculateStats = (tripsToProcess) => {
-        return tripsToProcess.reduce((acc, t) => {
+        const stats = tripsToProcess.reduce((acc, t) => {
             const price = parseFloat(t.price) || 0;
             const wage = parseFloat(t.wage) || 0;
             const fuel = parseFloat(t.fuel) || 0;
@@ -129,27 +129,50 @@ export const useTrips = () => {
             const basketShare = parseFloat(t.basketShare) || 0;
             const advance = parseFloat(t.staffShare) || 0;
 
-            return {
-                totalTrips: acc.totalTrips + 1,
-                totalRevenue: acc.totalRevenue + price + basketRevenue,
-                totalWages: acc.totalWages + wage,
-                totalFuel: acc.totalFuel + fuel,
-                totalMaintenance: acc.totalMaintenance + maintenance,
-                totalBasket: acc.totalBasket + basketShare,
-                totalStaffAdvance: acc.totalStaffAdvance + advance,
-                totalProfit: acc.totalProfit + (price + basketRevenue) - (wage + fuel + maintenance + basketShare),
-                totalRemainingPay: acc.totalRemainingPay + (wage + basketShare + 1000) - advance
-            };
+            acc.totalTrips += 1;
+            acc.totalRevenue += price + basketRevenue;
+            acc.totalWages += wage;
+            acc.totalFuel += fuel;
+            acc.totalMaintenance += maintenance;
+            acc.totalBasket += basketShare;
+            acc.totalStaffAdvance += advance;
+            acc.totalProfit += (price + basketRevenue) - (wage + fuel + maintenance + basketShare);
+
+            return acc;
         }, {
             totalTrips: 0, totalRevenue: 0, totalWages: 0, totalFuel: 0,
             totalMaintenance: 0, totalBasket: 0, totalStaffAdvance: 0, totalProfit: 0, totalRemainingPay: 0
         });
+
+        // Calculate totalRemainingPay correctly per driver
+        const drivers = {};
+        tripsToProcess.forEach(t => {
+            const name = t.driverName || 'Unknown';
+            if (!drivers[name]) {
+                drivers[name] = { wage: 0, basketShare: 0, advance: 0 };
+            }
+            drivers[name].wage += parseFloat(t.wage) || 0;
+            drivers[name].basketShare += parseFloat(t.basketShare) || 0;
+            drivers[name].advance += parseFloat(t.staffShare) || 0;
+        });
+
+        stats.totalRemainingPay = Object.values(drivers).reduce((sum, d) => {
+            return sum + (d.wage + d.basketShare + 1000) - d.advance;
+        }, 0);
+
+        return stats;
     };
 
     const stats = useMemo(() => {
+        const startDate = new Date(currentYear, currentMonth - 1, 20);
+        const endDate = new Date(currentYear, currentMonth, 19);
+
         const currentMonthTrips = trips.filter(t => {
-            const tripDate = new Date(t.date);
-            return tripDate.getMonth() === currentMonth && tripDate.getFullYear() === currentYear;
+            if (!t.date) return false;
+            // Parse YYYY-MM-DD as local date
+            const [y, m, d] = t.date.split('-').map(Number);
+            const checkDate = new Date(y, m - 1, d);
+            return checkDate >= startDate && checkDate <= endDate;
         });
         return calculateStats(currentMonthTrips);
     }, [trips, currentMonth, currentYear]);
