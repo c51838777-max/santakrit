@@ -336,7 +336,12 @@ const DriverEntry = () => {
                         const endDate = new Date(currentYear, currentMonth, 19);
 
                         return trips.filter(t => {
-                            if (!t.date || (t.driverName !== formData.driverName && t.driver_name !== formData.driverName)) return false;
+                            if (!t.date || !t.driverName) return false;
+
+                            // Normalize the input name for searching
+                            const searchName = formData.driverName.trim().replace(/\s+/g, ' ');
+                            if (t.driverName !== searchName) return false;
+
                             const [y, m, d] = t.date.split('-').map(Number);
                             const checkDate = new Date(y, m - 1, d);
                             return checkDate >= startDate && checkDate <= endDate;
