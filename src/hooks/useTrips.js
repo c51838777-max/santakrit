@@ -12,15 +12,17 @@ export const useTrips = () => {
 
     useEffect(() => {
         const init = async () => {
-            if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_URL === 'YOUR_SUPABASE_URL') {
-                loadLocalData();
-                return;
-            }
-
             try {
-                // Test connection and check for specific columns indirectly via error messages or just a select
-                const { data, error } = await supabase.from('trips').select('id').limit(1);
-                if (error) throw error;
+                // Test connection
+                const { error } = await supabase.from('trips').select('id').limit(1);
+
+                if (error) {
+                    console.warn('Supabase connection warning:', error);
+                    // If table doesn't exist or connection failed, we might fall back, 
+                    // but for now let's try to proceed if it's just an empty table or soft error
+                    if (error.code === 'PGRST116') { /* empty result is fine */ }
+                    else throw error;
+                }
 
                 setIsSupabaseReady(true);
                 await Promise.all([fetchTrips(), fetchPresets()]);
