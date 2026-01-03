@@ -9,6 +9,19 @@ const DriverEntry = () => {
     const [submitted, setSubmitted] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [showSlip, setShowSlip] = useState(false);
+
+    // Auto-open slip if requested via URL (?view=Name)
+    useEffect(() => {
+        const hash = window.location.hash;
+        if (hash.includes('?')) {
+            const params = new URLSearchParams(hash.split('?')[1]);
+            const viewName = params.get('view');
+            if (viewName) {
+                setFormData(prev => ({ ...prev, driverName: viewName }));
+                setShowSlip(true);
+            }
+        }
+    }, [trips]); // Re-run when trips are loaded
     const [formData, setFormData] = useState({
         driverName: localStorage.getItem('lastDriverName') || '',
         route: '',

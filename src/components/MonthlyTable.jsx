@@ -225,8 +225,9 @@ const MonthlyTable = ({ currentMonth, currentYear, trips, onMonthChange, onExpor
 
                         const driversMap = {};
                         tripsInPeriod.forEach(t => {
-                            if (!driversMap[t.driverName]) driversMap[t.driverName] = [];
-                            driversMap[t.driverName].push(t);
+                            const name = (t.driverName || t.driver_name || 'ไม่ระบุชื่อ').trim();
+                            if (!driversMap[name]) driversMap[name] = [];
+                            driversMap[name].push(t);
                         });
 
                         return Object.entries(driversMap).map(([name, driverTrips]) => {
@@ -255,6 +256,18 @@ const MonthlyTable = ({ currentMonth, currentYear, trips, onMonthChange, onExpor
                                                 onChange={(e) => setCnDeductions({ ...cnDeductions, [name]: e.target.value })}
                                             />
                                         </div>
+                                        <button
+                                            className="btn btn-outline"
+                                            style={{ padding: '0.4rem', fontSize: '0.75rem' }}
+                                            onClick={() => {
+                                                const url = `${window.location.origin}${window.location.pathname}#/driver?view=${encodeURIComponent(name)}`;
+                                                navigator.clipboard.writeText(url);
+                                                alert(`ก๊อปปี้ลิงก์สลิปของ ${name} เรียบร้อย! ส่งให้ทางไลน์ได้เลยครับ`);
+                                            }}
+                                            title="ก๊อปปี้ลิงก์ส่งให้ลูกน้อง"
+                                        >
+                                            <Download size={14} /> ลิงก์
+                                        </button>
                                         <button
                                             className="btn btn-primary"
                                             style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
