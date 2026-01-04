@@ -9,7 +9,7 @@
             "purpose": "any maskable"
         }
     ],
-    "start_url": ".",
+    "start_url": "./#/driver",
     "display": "standalone",
     "theme_color": "#002a16",
     "background_color": "#000a06"
